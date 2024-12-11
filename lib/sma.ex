@@ -17,24 +17,18 @@ defmodule Sma do
   end
 
   @doc """
-  Function extracting data from binance public API reply.
-  The data we are looking for are :
-    - Current price
-    - 24hr high
-    - 24hr low
-    - 24hr volume
+  Function extracting the body out of a binance public API reply.
 
   argument:
     - the binance API reply
-    The payload must include at least one concerned field. Else, the return will be %{}
+    A JSON string
 
   return:
-    A map containing the extracted key data
+    A elixir built-in type containing the extracted data (usually a map or an array of those)
   """
-  def extract_data(%HTTPoison.Response{body: payload}) do
+  def extract_body(%HTTPoison.Response{body: payload}) do
     payload
     |> Jason.decode!()
-    |> Map.take(["lastPrice", "highPrice", "lowPrice", "volume"])
   end
 
   @doc """
@@ -55,10 +49,35 @@ defmodule Sma do
   def fetch_24hr_data(pair \\ "BTCUSDT") do
     "https://api.binance.com/api/v3/ticker/24hr"
     |> HTTPoison.get!([], params: %{symbol: pair}) #empty header
-    |> extract_data() # gutting the API reply, keeping only the key data
+    |> extract_body() # extract the payload from the API response
+    |> Map.take(["lastPrice", "highPrice", "lowPrice", "volume"])
+    |> IO.inspect()
+  end
+
+  @doc """
+  Function fetching and displaying data on the binance public API for a defined pair (step 1 of the case study in README)
+  The data we are looking for are :
+    - Current price
+    - 24hr high
+    - 24hr low
+    - 24hr volume
+
+  argument:
+    - pair
+    The concerned pair, in a binance compatible format (default value is "BTCUSDT")
+    - limit
+    The maximum number of trades to consult
+
+  return:
+    A list of prices, of size 'limit'
+  """
+  def fetch_last_prices(pair \\ "BTCUSDT", limit \\ 30) do
+    "https://api.binance.com/api/v3/trades"
+    |> HTTPoison.get!([], params: %{symbol: pair, limit: limit}) #empty header
     |> IO.inspect()
   end
 end
 
 Application.ensure_all_started(:httpoison) # Ensure HTTPoison is running
 Sma.fetch_24hr_data()
+#Sma.fetch_last_prices()
