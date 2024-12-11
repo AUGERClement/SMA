@@ -83,7 +83,7 @@ Expected Deliverables
 - Erlang OTP 24
 - Elixir version 1.13
 
-### Library used
+### Libraries used
 
 - HTTPoison (HTTP toolkit, version 2.0.0)
 - Jason (JSON toolkit, version 1.4.4)
