@@ -119,7 +119,7 @@ defmodule Sma do
   @doc """
   Rolls the price history, by poping the last of the list (oldest) and putting the newest one in front
 
-  argument :
+  arguments :
     - prices
     The list of prices so far
 
@@ -139,8 +139,26 @@ defmodule Sma do
     #|> IO.inspect()
   end
 
-  def refresh_data(x, prices) do
-    prices = Sma.update_prices(prices)
+  @doc """
+  This function rolls the price history.
+  Then, if x is divisible by 6, it fetch and print main data from the 24hr timeframe using `fetch_24hr_data`, and finally offer a prediction about the ticker
+
+  arguments :
+    - x
+    The current occurence of the treatment
+
+    - prices
+    The list of prices so far
+
+    - pair
+    The concerned pair, in a binance compatible format (default value is "BTCUSDT")
+
+  return :
+    The updated list of prices
+
+  """
+  def refresh_data(x, prices, pair \\ "BTCUSDT") do
+    prices = Sma.update_prices(prices, pair)
     newest = List.first(prices)
 
     if rem(x, 6) == 0 do # Every minute
@@ -157,8 +175,6 @@ defmodule Sma do
         true -> IO.inspect("SMA is below last trading price. Bullish")
       end
     end
-
-    Sma.wait()
     prices
   end
 end
@@ -190,4 +206,8 @@ prices =
 #IO.inspect(prices)
 
 0..30 # We are looking for a 5 mins (300 sec) average updating every 10s.
-|> Enum.reduce(prices, fn x, acc -> Sma.refresh_data(x, acc) end)
+|> Enum.reduce(prices, fn x, acc ->
+  tmp = Sma.refresh_data(x, acc)
+  Sma.wait()
+  tmp
+end)
