@@ -39,7 +39,7 @@ Requirements
 
         Calculate a 5-minute simple moving average (SMA) based on the last 30 prices, using either Rest or Websocket API.
 
-        Save this SMA value to output.
+        Save this SMA value to output.*
 
     Output:
 
@@ -93,3 +93,13 @@ Expected Deliverables
 ```
 mix run
 ```
+## Detailed explanations
+
+Due to the wording of the case study, bringing confusion, I asked for more details.
+The following were provided (in french) :
+
+```
+C'est un peu confus, mais je pense que l'idée était de scanner les prix toutes les 10 secondes (30 points pour 5 minutes).
+```
+
+Meaning, the program must refresh the price history every 10 seconds for 5 minutes, and provide the remaining data (price, 24h high, 24h low, 24h volume, and SMA) every minute.

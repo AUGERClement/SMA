@@ -94,6 +94,13 @@ defmodule Sma do
     |> Sma.computeSMA()
     |> IO.inspect(label: "The SMA based on the last #{limit} trades is ")
   end
+
+  # Due to detailed explanations by François Monteleon
+  # some shades of the study were grasped.
+  # Hence the following functions would meet the newfound requirement
+  # See detailed explanation in the Readme
+
+
 end
 
 Application.ensure_all_started(:httpoison) # Ensure HTTPoison is running
@@ -111,3 +118,5 @@ Enum.each(1..4, fn  _ ->
   Process.sleep(60000) # Sleep for 60 seconds
   Sma.fetch_and_process()
 end)
+
+# Version accountin gfor the detailed explanation
