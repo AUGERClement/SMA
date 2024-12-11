@@ -4,19 +4,6 @@ defmodule Sma do
   """
 
   @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Sma.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
-
-  @doc """
   Function extracting the body out of a binance public API reply.
 
   argument:
