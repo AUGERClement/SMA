@@ -38,7 +38,6 @@ defmodule Sma do
     |> HTTPoison.get!([], params: %{symbol: pair}) #empty header
     |> extract_body() # extract the payload from the API response
     |> Map.take(["lastPrice", "highPrice", "lowPrice", "volume"])
-    |> IO.inspect()
   end
 
   @doc """
@@ -100,13 +99,37 @@ defmodule Sma do
   # Hence the following functions would meet the newfound requirement
   # See detailed explanation in the Readme
 
+  @doc """
+  This function pauses the program for the specified duration.
 
+  argument :
+    - seconds
+    the amount of time the program must wait (in seconds)
+
+  return :
+    Nothing
+
+  """
+  def wait(seconds \\ 10) do
+    Process.sleep(seconds * 1000)
+  end
+
+  def update_prices(prices) do
+    newest =
+      fetch_last_prices()
+      |> List.last()
+      |> IO.inspect(label: "last price is ")
+
+    [newest | Enum.drop(prices, -1)] # Pop the oldest/last price, add the newest/first price
+  end
 end
 
 Application.ensure_all_started(:httpoison) # Ensure HTTPoison is running
 
+_version1 = """
 # Step 1
 Sma.fetch_24hr_data()
+|> IO.inspect()
 
 # Step 2
 Sma.fetch_last_prices()
@@ -118,5 +141,25 @@ Enum.each(1..4, fn  _ ->
   Process.sleep(60000) # Sleep for 60 seconds
   Sma.fetch_and_process()
 end)
+"""
 
-# Version accountin gfor the detailed explanation
+# Version 2, accounting for the detailed explanation
+prices =
+  Sma.fetch_last_prices() # Get our starting price list (30 most recent ones)
+  |> Enum.reverse() #For optimisation, we need to put the newest elems at the begining
+
+#IO.inspect(prices)
+
+Enum.to_list(0..30) # We are looking for a 5 mins (300 sec) average updating every 10s.
+
+|> Enum.map(fn x ->
+  prices = Sma.update_prices(prices)
+  if rem(x, 6) == 0 do
+    IO.inspect("Every minute, data will be updated")
+    Sma.fetch_24hr_data()
+    |> IO.inspect()
+    Sma.computeSMA(prices)
+    |> IO.inspect(label: "Current SMA is ")
+  end
+  Sma.wait()
+ end)
