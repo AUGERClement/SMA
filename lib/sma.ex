@@ -1,6 +1,8 @@
 defmodule Sma do
   @moduledoc """
-  Documentation for `Sma`.
+  Documentation for `Sma`, the module containing all fuctions bound to the case study.
+
+  This module is filled with functions calling the Binance API or processing the returns of said calls.
   """
 
   @doc """
@@ -114,13 +116,50 @@ defmodule Sma do
     Process.sleep(seconds * 1000)
   end
 
-  def update_prices(prices) do
+  @doc """
+  Rolls the price history, by poping the last of the list (oldest) and putting the newest one in front
+
+  argument :
+    - prices
+    The list of prices so far
+
+    - pair
+    The concerned pair, in a binance compatible format (default value is "BTCUSDT")
+
+  return :
+    The updated list of prices
+  """
+  def update_prices(prices, pair \\ "BTCUSDT") do
     newest =
-      fetch_last_prices()
+      fetch_last_prices(pair)
       |> List.last()
       |> IO.inspect(label: "last price is ")
 
     [newest | Enum.drop(prices, -1)] # Pop the oldest/last price, add the newest/first price
+    #|> IO.inspect()
+  end
+
+  def refresh_data(x, prices) do
+    prices = Sma.update_prices(prices)
+    newest = List.first(prices)
+
+    if rem(x, 6) == 0 do # Every minute
+      IO.inspect("Every minute, data will be updated")
+      Sma.fetch_24hr_data()
+      |> IO.inspect()
+
+      sma =
+        Sma.computeSMA(prices)
+          |> IO.inspect(label: "Current SMA is ")
+
+      cond do
+        sma > newest -> IO.inspect("SMA is above last trading price. Bearish")
+        true -> IO.inspect("SMA is below last trading price. Bullish")
+      end
+    end
+
+    Sma.wait()
+    prices
   end
 end
 
@@ -150,24 +189,5 @@ prices =
 
 #IO.inspect(prices)
 
-Enum.to_list(0..30) # We are looking for a 5 mins (300 sec) average updating every 10s.
-
-|> Enum.map(fn x ->
-  prices = Sma.update_prices(prices)
-  last = List.first(prices)
-  if rem(x, 6) == 0 do
-    IO.inspect("Every minute, data will be updated")
-    Sma.fetch_24hr_data()
-    |> IO.inspect()
-
-    sma =
-      Sma.computeSMA(prices)
-        |> IO.inspect(label: "Current SMA is ")
-
-    cond do
-      sma > last -> IO.inspect("SMA is above last trading price. Bearish")
-      true -> IO.inspect("SMA is below last trading price. Bullish")
-    end
-  end
-  Sma.wait()
- end)
+0..30 # We are looking for a 5 mins (300 sec) average updating every 10s.
+|> Enum.reduce(prices, fn x, acc -> Sma.refresh_data(x, acc) end)
