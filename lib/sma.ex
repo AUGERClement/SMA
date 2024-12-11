@@ -133,7 +133,7 @@ defmodule Sma do
     newest =
       fetch_last_prices(pair)
       |> List.last()
-      |> IO.inspect(label: "last price is ")
+      #|> IO.inspect(label: "last price is ")
 
     [newest | Enum.drop(prices, -1)] # Pop the oldest/last price, add the newest/first price
     #|> IO.inspect()
