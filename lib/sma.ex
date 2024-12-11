@@ -70,7 +70,7 @@ defmodule Sma do
     "https://api.binance.com/api/v3/trades"
     |> HTTPoison.get!([], params: %{symbol: pair, limit: limit}) #empty header
     |> extract_body()
-    #|> IO.inspect()
+    #|> IO.inspect(label: "The content of the reply is ")
     |> Enum.map(fn x -> x["price"] end) # Extract price data from each trade
     |> Enum.map(fn x -> String.to_float(x) end) # Convert to number
   end
@@ -81,13 +81,31 @@ defmodule Sma do
 
   argument :
     - prices
-    An array of prices
+    An array of numbers (prices)
 
   return :
     The computed SMA
   """
   def computeSMA(prices) do
     Enum.sum(prices) / Enum.count(prices)
+  end
+
+  @doc """
+  Function wrapping the Step 1 and 2 of the case study (See README for more accurante description)
+
+  arguments :
+    - pair
+    The concerned pair, in a binance compatible format (default value is "BTCUSDT")
+    - limit
+    The maximum number of trades to consult
+  """
+  def fetch_and_process(pair \\ "BTCUSDT", limit \\ 30) do
+    fetch_24hr_data(pair) #Step 1
+
+    # Step 2
+    Sma.fetch_last_prices(pair, limit)
+    |> Sma.computeSMA()
+    |> IO.inspect(label: "The SMA based on the last #{limit} trades is ")
   end
 end
 
@@ -99,4 +117,10 @@ Sma.fetch_24hr_data()
 # Step 2
 Sma.fetch_last_prices()
 |> Sma.computeSMA()
-|> IO.inspect(label: "The SMA is ")
+|> IO.inspect(label: "The SMA based on the last 30 trades is ")
+
+# Step 3 (Repeating 4 times the previous steps, while waiting a minutes between each)
+Enum.each(1..4, fn  _ ->
+  Process.sleep(60000) # Sleep for 60 seconds
+  Sma.fetch_and_process()
+end)
