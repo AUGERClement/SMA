@@ -154,12 +154,20 @@ Enum.to_list(0..30) # We are looking for a 5 mins (300 sec) average updating eve
 
 |> Enum.map(fn x ->
   prices = Sma.update_prices(prices)
+  last = List.first(prices)
   if rem(x, 6) == 0 do
     IO.inspect("Every minute, data will be updated")
     Sma.fetch_24hr_data()
     |> IO.inspect()
-    Sma.computeSMA(prices)
-    |> IO.inspect(label: "Current SMA is ")
+
+    sma =
+      Sma.computeSMA(prices)
+        |> IO.inspect(label: "Current SMA is ")
+
+    cond do
+      sma > last -> IO.inspect("SMA is above last trading price. Bearish")
+      true -> IO.inspect("SMA is below last trading price. Bullish")
+    end
   end
   Sma.wait()
  end)
