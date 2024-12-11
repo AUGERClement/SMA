@@ -85,10 +85,11 @@ Expected Deliverables
 
 ### Library used
 
-- Req (HTTP toolkit, version 0.5)
+- HTTPoison (HTTP toolkit, version 2.0.0)
+- Jason (JSON toolkit, version 1.4.4)
 
 ## Usage
 
 ```
-elixir sma.exs
+mix run
 ```
